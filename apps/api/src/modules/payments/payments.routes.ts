@@ -55,6 +55,9 @@ export default async function paymentsRoutes(app: FastifyInstance) {
       // Skip JWT auth — Stripe signature is the auth
     },
     async (req, reply) => {
+      if (!process.env['STRIPE_WEBHOOK_SECRET']) {
+        return reply.code(503).send({ error: 'Stripe webhook not configured' });
+      }
       const signature = req.headers['stripe-signature'] as string;
       if (!signature) return reply.code(400).send({ error: 'Missing stripe-signature' });
 

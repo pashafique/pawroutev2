@@ -62,8 +62,10 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: prodOnly(
     z.string().startsWith('sk_', 'STRIPE_SECRET_KEY must start with sk_').min(1)
   ),
-  STRIPE_WEBHOOK_SECRET: prodOnly(
-    z.string().startsWith('whsec_', 'STRIPE_WEBHOOK_SECRET must start with whsec_').min(1)
+  // Webhook secret is set AFTER first deploy (need live URL for Stripe webhook endpoint).
+  // Payments work without it; only webhook verification is skipped.
+  STRIPE_WEBHOOK_SECRET: emptyToUndefined.pipe(
+    z.string().startsWith('whsec_', 'STRIPE_WEBHOOK_SECRET must start with whsec_').optional()
   ),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: emptyToUndefined.pipe(
     z.string().startsWith('pk_', 'STRIPE_PUBLISHABLE_KEY must start with pk_').optional()
