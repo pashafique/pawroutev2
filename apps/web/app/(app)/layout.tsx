@@ -5,7 +5,7 @@ import ChatWidget from '../../components/ChatWidget';
 const c = appConfig.brand.colors;
 
 const navItems = [
-  { href: '/', label: 'Home', icon: '🏠' },
+  { href: '/home', label: 'Home', icon: '🏠' },
   { href: '/pets', label: 'My Pets', icon: '🐾' },
   { href: '/services', label: 'Services', icon: '✂️' },
   { href: '/appointments', label: 'Bookings', icon: '📅' },

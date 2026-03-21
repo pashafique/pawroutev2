@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { appConfig } from '@pawroute/config';
-import { api } from '../../lib/api';
+import { api } from '../../../lib/api';
 
 const c = appConfig.brand.colors;
-const CUR = appConfig.locale.currencySymbol;
 
 interface Appointment {
   id: string;
