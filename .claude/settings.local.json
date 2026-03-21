@@ -38,7 +38,11 @@
       "Bash(wmic process:*)",
       "Bash(xargs -I{} wmic process where ProcessId={} delete)",
       "Bash(node:*)",
-      "Bash(node -e \"console.log\\(require\\(''./apps/web/node_modules/next/package.json''\\).version\\)\")"
+      "Bash(node -e \"console.log\\(require\\(''./apps/web/node_modules/next/package.json''\\).version\\)\")",
+      "Bash(del \"C:\\\\pawroutev2\\\\apps\\\\api\\\\railway.json\")",
+      "Bash(git add:*)",
+      "Bash(git rm:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }

@@ -3,8 +3,8 @@
  * @description Push notification delivery and in-app notification management.
  */
 
-import { prisma } from '../../lib/prisma';
-import { sendPush, sendMulticastPush } from '../../lib/fcm';
+import { prisma } from '../../lib/prisma.js';
+import { sendPush, sendMulticastPush } from '../../lib/fcm.js';
 import { appConfig } from '@pawroute/config';
 
 // ── Trigger helpers ──────────────────────────────────────────────────────────
@@ -174,7 +174,7 @@ export async function sendBroadcast(
     select: { fcmToken: true },
   });
 
-  const tokens = users.map((u) => u.fcmToken!).filter(Boolean);
+  const tokens = users.map((u: any) => u.fcmToken!).filter(Boolean);
   const result = await sendMulticastPush(tokens, { title, body });
 
   await prisma.broadcastLog.create({

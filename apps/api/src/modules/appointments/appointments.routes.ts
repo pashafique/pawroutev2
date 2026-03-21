@@ -4,8 +4,8 @@
  */
 
 import type { FastifyInstance } from 'fastify';
-import { requireAuth, requireAdmin, requireRole } from '../../middleware/auth';
-import * as appointmentsService from './appointments.service';
+import { requireAuth, requireAdmin, requireRole } from '../../middleware/auth.js';
+import * as appointmentsService from './appointments.service.js';
 
 export default async function appointmentsRoutes(app: FastifyInstance) {
   // ── Customer routes ────────────────────────────────────────────────────────

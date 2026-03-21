@@ -115,7 +115,7 @@ async function authRoutes(app: FastifyInstance) {
     },
     handler: async (req, reply) => {
       const { email } = req.body as z.infer<typeof ForgotPasswordSchema>;
-      await authService.forgotPassword(email);
+      await authService.forgotPassword(email!);
       // Always 200 — prevents email enumeration
       reply.send({
         success: true,
@@ -215,7 +215,7 @@ async function verifyGoogleToken(idToken: string): Promise<authService.GooglePro
     googleId: data.sub,
     email: data.email,
     name: data.name,
-    avatarUrl: data.picture,
+    ...(data.picture !== undefined && { avatarUrl: data.picture }),
     emailVerified: data.email_verified === 'true',
   };
 }
@@ -237,7 +237,7 @@ async function verifyFacebookToken(accessToken: string): Promise<authService.Fac
     facebookId: data.id,
     email: data.email,
     name: data.name,
-    avatarUrl: data.picture?.data?.url,
+    ...(data.picture?.data?.url !== undefined && { avatarUrl: data.picture.data.url }),
   };
 }
 

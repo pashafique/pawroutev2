@@ -36,7 +36,7 @@ export async function sendPush(fcmToken: string, payload: PushPayload): Promise<
     await messaging.send({
       token: fcmToken,
       notification: { title: payload.title, body: payload.body },
-      data: payload.data,
+      ...(payload.data !== undefined && { data: payload.data }),
       android: {
         priority: 'high',
         notification: {
@@ -77,7 +77,7 @@ export async function sendMulticastPush(
     const message: MulticastMessage = {
       tokens: batch,
       notification: { title: payload.title, body: payload.body },
-      data: payload.data,
+      ...(payload.data !== undefined && { data: payload.data }),
     };
     const response = await messaging.sendEachForMulticast(message);
     successCount += response.successCount;

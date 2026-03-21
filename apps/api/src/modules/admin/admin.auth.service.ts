@@ -6,7 +6,7 @@
 
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../lib/prisma.js';
-import { redis } from '../../lib/redis.js';
+import { redis, isLockedOut, incrementLoginAttempts, clearLoginAttempts, storeRefreshToken, validateRefreshToken } from '../../lib/redis.js';
 import { appConfig } from '@pawroute/config';
 import type { AdminRole } from '@pawroute/types';
 import {
@@ -18,7 +18,7 @@ import {
 const { auth } = appConfig;
 
 export async function adminLogin(email: string, password: string) {
-  const locked = await redis.isLockedOut(`admin:${email}`);
+  const locked = await isLockedOut(`admin:${email}`);
   if (locked) {
     throw Object.assign(
       new Error(`Account locked. Try again after ${auth.lockoutMinutes} minutes.`),
@@ -32,22 +32,22 @@ export async function adminLogin(email: string, password: string) {
   });
 
   if (!admin || !admin.isActive) {
-    await redis.incrementLoginAttempts(`admin:${email}`, auth.lockoutMinutes);
+    await incrementLoginAttempts(`admin:${email}`);
     throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
   }
 
   const valid = await bcrypt.compare(password, admin.passwordHash);
   if (!valid) {
-    await redis.incrementLoginAttempts(`admin:${email}`, auth.lockoutMinutes);
+    await incrementLoginAttempts(`admin:${email}`);
     throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
   }
 
-  await redis.clearLoginAttempts(`admin:${email}`);
+  await clearLoginAttempts(`admin:${email}`);
 
   const role = admin.role as AdminRole;
   const accessToken = generateAdminAccessToken(admin.id, role);
   const refreshToken = generateAdminRefreshToken(admin.id, role);
-  await redis.storeRefreshToken(`admin:${admin.id}`, refreshToken);
+  await storeRefreshToken(`admin:${admin.id}`, refreshToken);
 
   await prisma.adminUser.update({
     where: { id: admin.id },
@@ -76,14 +76,14 @@ export async function adminRefreshToken(token: string) {
     throw Object.assign(new Error('Invalid or expired refresh token'), { statusCode: 401 });
   }
 
-  const valid = await redis.validateRefreshToken(`admin:${payload.sub}`, token);
+  const valid = await validateRefreshToken(token);
   if (!valid) {
     throw Object.assign(new Error('Refresh token revoked'), { statusCode: 401 });
   }
 
   const newAccess = generateAdminAccessToken(payload.sub, payload.role);
   const newRefresh = generateAdminRefreshToken(payload.sub, payload.role);
-  await redis.storeRefreshToken(`admin:${payload.sub}`, newRefresh);
+  await storeRefreshToken(`admin:${payload.sub}`, newRefresh);
 
   return { accessToken: newAccess, refreshToken: newRefresh };
 }

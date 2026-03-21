@@ -4,9 +4,9 @@
  */
 
 import type { FastifyInstance } from 'fastify';
-import { requireAuth } from '../../middleware/auth';
-import { requireAdmin, requireRole } from '../../middleware/auth';
-import * as couponsService from './coupons.service';
+import { requireAuth } from '../../middleware/auth.js';
+import { requireAdmin, requireRole } from '../../middleware/auth.js';
+import * as couponsService from './coupons.service.js';
 
 export default async function couponsRoutes(app: FastifyInstance) {
   // POST /coupons/validate — requires auth

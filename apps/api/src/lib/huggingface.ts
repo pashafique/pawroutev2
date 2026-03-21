@@ -34,7 +34,7 @@ export async function detectBreed(imageBuffer: Buffer): Promise<BreedPrediction[
   const res = await fetch(HF_API_URL, {
     method: 'POST',
     headers,
-    body: imageBuffer,
+    body: new Uint8Array(imageBuffer),
   });
 
   if (!res.ok) {

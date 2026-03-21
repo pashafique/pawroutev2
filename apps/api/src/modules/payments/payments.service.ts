@@ -3,8 +3,8 @@
  * @description Payment processing — Stripe + Cash on arrival.
  */
 
-import { prisma } from '../../lib/prisma';
-import { createPaymentIntent, createRefund } from '../../lib/stripe';
+import { prisma } from '../../lib/prisma.js';
+import { createPaymentIntent, createRefund } from '../../lib/stripe.js';
 import { appConfig } from '@pawroute/config';
 
 // ── Create Stripe PaymentIntent ──────────────────────────────────────────────

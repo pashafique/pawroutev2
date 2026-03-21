@@ -4,8 +4,8 @@
  */
 
 import type { FastifyInstance } from 'fastify';
-import { requireAuth } from '../../middleware/auth';
-import { prisma } from '../../lib/prisma';
+import { requireAuth } from '../../middleware/auth.js';
+import { prisma } from '../../lib/prisma.js';
 
 export default async function usersRoutes(app: FastifyInstance) {
   app.addHook('preHandler', requireAuth);

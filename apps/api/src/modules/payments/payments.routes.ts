@@ -4,9 +4,9 @@
  */
 
 import type { FastifyInstance } from 'fastify';
-import { requireAuth, requireAdmin, requireRole } from '../../middleware/auth';
-import { constructWebhookEvent } from '../../lib/stripe';
-import * as paymentsService from './payments.service';
+import { requireAuth, requireAdmin, requireRole } from '../../middleware/auth.js';
+import { constructWebhookEvent } from '../../lib/stripe.js';
+import * as paymentsService from './payments.service.js';
 
 export default async function paymentsRoutes(app: FastifyInstance) {
   // ── Customer routes ────────────────────────────────────────────────────────

@@ -4,10 +4,10 @@
  */
 
 import type { FastifyInstance } from 'fastify';
-import { requireAdmin, requireRole } from '../../middleware/auth';
-import { processImage } from '../../utils/image';
-import { supabase } from '../../lib/supabase';
-import { prisma } from '../../lib/prisma';
+import { requireAdmin, requireRole } from '../../middleware/auth.js';
+import { processImage } from '../../utils/image.js';
+import { supabase } from '../../lib/supabase.js';
+import { prisma } from '../../lib/prisma.js';
 import { appConfig } from '@pawroute/config';
 
 const BUCKET = process.env['SUPABASE_STORAGE_BUCKET'] ?? 'pawroute-media';

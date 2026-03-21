@@ -56,7 +56,7 @@ export async function createRefund(
 ): Promise<Stripe.Refund> {
   return stripe.refunds.create({
     payment_intent: paymentIntentId,
-    amount: amountAed ? Math.round(amountAed * 100) : undefined,
-    reason,
+    ...(amountAed !== undefined && { amount: Math.round(amountAed * 100) }),
+    ...(reason !== undefined && { reason }),
   });
 }

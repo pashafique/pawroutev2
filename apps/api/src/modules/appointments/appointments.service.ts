@@ -3,14 +3,14 @@
  * @description Appointment lifecycle — create, list, cancel, reschedule, admin status.
  */
 
-import { prisma } from '../../lib/prisma';
-import { acquireSlotLock, releaseSlotLock } from '../../lib/redis';
+import { prisma } from '../../lib/prisma.js';
+import { acquireSlotLock, releaseSlotLock } from '../../lib/redis.js';
 import { generateBookingRef } from '@pawroute/utils';
 import { classifyPetSize } from '@pawroute/utils';
 import { appConfig } from '@pawroute/config';
-import { validateCoupon, applyCouponUsage } from '../coupons/coupons.service';
-import { notifyBookingConfirmed, notifyAppointmentCancelled, notifyAppointmentCompleted } from '../notifications/notifications.service';
-import { scheduleReminders, cancelReminders } from '../../jobs/reminder.job';
+import { validateCoupon, applyCouponUsage } from '../coupons/coupons.service.js';
+import { notifyBookingConfirmed, notifyAppointmentCancelled, notifyAppointmentCompleted } from '../notifications/notifications.service.js';
+import { scheduleReminders, cancelReminders } from '../../jobs/reminder.job.js';
 
 export interface CreateAppointmentInput {
   petId: string;
@@ -60,7 +60,7 @@ export async function createAppointment(userId: string, input: CreateAppointment
   try {
     // 4. Price calculation
     const sizeCategory = pet.sizeCategory;
-    const pricing = service.pricing.find((p) => p.sizeLabel === sizeCategory);
+    const pricing = service.pricing.find((p: any) => p.sizeLabel === sizeCategory);
     if (!pricing) {
       throw Object.assign(new Error(`No pricing available for size ${sizeCategory}`), { statusCode: 400 });
     }
@@ -71,9 +71,9 @@ export async function createAppointment(userId: string, input: CreateAppointment
       throw Object.assign(new Error(`Maximum ${appConfig.booking.maxAddonsPerBooking} add-ons per booking`), { statusCode: 400 });
     }
     const selectedAddons = service.addons.filter(
-      (a) => addonIds.includes(a.id) && a.isActive && !a.deletedAt
+      (a: any) => addonIds.includes(a.id) && a.isActive && !a.deletedAt
     );
-    const addonFee = selectedAddons.reduce((sum, a) => sum + a.price, 0);
+    const addonFee = selectedAddons.reduce((sum: number, a: any) => sum + a.price, 0);
 
     let subtotal = serviceFee + addonFee;
 
@@ -102,7 +102,7 @@ export async function createAppointment(userId: string, input: CreateAppointment
     } while (attempts < 5);
 
     // 8. Create appointment in transaction
-    const appointment = await prisma.$transaction(async (tx) => {
+    const appointment = await prisma.$transaction(async (tx: any) => {
       const appt = await tx.appointment.create({
         data: {
           bookingRef: bookingRef!,
@@ -119,7 +119,7 @@ export async function createAppointment(userId: string, input: CreateAppointment
           notes: notes ?? null,
           addons: selectedAddons.length > 0
             ? {
-                create: selectedAddons.map((a) => ({
+                create: selectedAddons.map((a: any) => ({
                   addonId: a.id,
                   addonName: a.name,
                   addonPrice: a.price,
@@ -256,7 +256,7 @@ export async function cancelAppointment(
     }
   }
 
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: any) => {
     const updated = await tx.appointment.update({
       where: { id: appointmentId },
       data: {
@@ -314,7 +314,7 @@ export async function rescheduleAppointment(
   if (!locked) throw Object.assign(new Error('New slot is temporarily held'), { statusCode: 409 });
 
   try {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: any) => {
       const oldSlot = await tx.timeSlot.findUnique({ where: { id: appt.slotId } });
 
       const updated = await tx.appointment.update({

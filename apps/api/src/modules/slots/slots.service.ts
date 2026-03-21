@@ -3,7 +3,7 @@
  * @description Time slot management — availability, creation, blocking.
  */
 
-import { prisma } from '../../lib/prisma';
+import { prisma } from '../../lib/prisma.js';
 import { appConfig } from '@pawroute/config';
 
 export interface SlotInput {
@@ -47,8 +47,8 @@ export async function getAvailableSlots(date: string) {
   });
 
   return slots
-    .filter((s) => s.bookedCount < s.capacity)
-    .map((s) => ({
+    .filter((s: any) => s.bookedCount < s.capacity)
+    .map((s: any) => ({
       id: s.id,
       date: s.date,
       startTime: s.startTime,

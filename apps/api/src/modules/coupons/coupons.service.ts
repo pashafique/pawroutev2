@@ -3,7 +3,7 @@
  * @description Coupon validation and management.
  */
 
-import { prisma } from '../../lib/prisma';
+import { prisma } from '../../lib/prisma.js';
 
 export interface CouponValidationResult {
   valid: boolean;
@@ -49,7 +49,7 @@ export async function validateCoupon(
 
   // Check service restrictions (empty = applies to all)
   if (coupon.couponServices.length > 0) {
-    const applies = coupon.couponServices.some((cs) => cs.serviceId === serviceId);
+    const applies = coupon.couponServices.some((cs: any) => cs.serviceId === serviceId);
     if (!applies) return { valid: false, error: 'Coupon does not apply to this service' };
   }
 

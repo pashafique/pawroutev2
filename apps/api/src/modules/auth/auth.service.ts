@@ -5,7 +5,7 @@
 
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../lib/prisma.js';
-import { redis } from '../../lib/redis.js';
+import { redis, isLockedOut, incrementLoginAttempts, clearLoginAttempts, storeRefreshToken, validateRefreshToken } from '../../lib/redis.js';
 import { appConfig } from '@pawroute/config';
 import {
   generateAccessToken,
@@ -62,7 +62,7 @@ export async function register(input: RegisterInput) {
 
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
-  await redis.storeRefreshToken(user.id, refreshToken);
+  await storeRefreshToken(user.id, refreshToken);
 
   return { user, accessToken, refreshToken };
 }
@@ -77,7 +77,7 @@ export interface LoginInput {
 export async function login(input: LoginInput) {
   const { email: identifier, password } = input;
 
-  const locked = await redis.isLockedOut(identifier);
+  const locked = await isLockedOut(identifier);
   if (locked) {
     throw Object.assign(
       new Error(`Account locked. Try again after ${auth.lockoutMinutes} minutes.`),
@@ -95,21 +95,21 @@ export async function login(input: LoginInput) {
   });
 
   if (!user || !user.passwordHash) {
-    await redis.incrementLoginAttempts(identifier, auth.lockoutMinutes);
+    await incrementLoginAttempts(identifier);
     throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
-    await redis.incrementLoginAttempts(identifier, auth.lockoutMinutes);
+    await incrementLoginAttempts(identifier);
     throw Object.assign(new Error('Invalid credentials'), { statusCode: 401 });
   }
 
-  await redis.clearLoginAttempts(identifier);
+  await clearLoginAttempts(identifier);
 
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
-  await redis.storeRefreshToken(user.id, refreshToken);
+  await storeRefreshToken(user.id, refreshToken);
 
   return {
     user: {
@@ -191,7 +191,7 @@ export async function refreshAccessToken(token: string) {
     throw Object.assign(new Error('Invalid or expired refresh token'), { statusCode: 401 });
   }
 
-  const valid = await redis.validateRefreshToken(payload.sub, token);
+  const valid = await validateRefreshToken(token);
   if (!valid) {
     throw Object.assign(new Error('Refresh token revoked'), { statusCode: 401 });
   }
@@ -206,7 +206,7 @@ export async function refreshAccessToken(token: string) {
 
   const newAccess = generateAccessToken(payload.sub);
   const newRefresh = generateRefreshToken(payload.sub);
-  await redis.storeRefreshToken(payload.sub, newRefresh);
+  await storeRefreshToken(payload.sub, newRefresh);
 
   return { accessToken: newAccess, refreshToken: newRefresh };
 }
@@ -303,7 +303,7 @@ export async function googleSso(profile: GoogleProfile) {
 
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
-  await redis.storeRefreshToken(user.id, refreshToken);
+  await storeRefreshToken(user.id, refreshToken);
 
   return {
     user: { id: user.id, name: user.name, email: user.email, profilePhoto: user.profilePhoto },
@@ -355,7 +355,7 @@ export async function facebookSso(profile: FacebookProfile) {
 
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
-  await redis.storeRefreshToken(user.id, refreshToken);
+  await storeRefreshToken(user.id, refreshToken);
 
   return {
     user: { id: user.id, name: user.name, email: user.email, profilePhoto: user.profilePhoto },

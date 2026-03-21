@@ -52,9 +52,9 @@ export async function listServices(params: {
   // If weightKg is provided, annotate each service with the price for that pet's size
   if (weightKg != null) {
     const sizeKey = classifyPetSize(weightKg);
-    return services.map((svc) => ({
+    return services.map((svc: any) => ({
       ...svc,
-      priceForSize: svc.pricing.find((p) => p.sizeLabel === sizeKey)?.price ?? null,
+      priceForSize: svc.pricing.find((p: any) => p.sizeLabel === sizeKey)?.price ?? null,
       sizeCategory: sizeKey,
     }));
   }

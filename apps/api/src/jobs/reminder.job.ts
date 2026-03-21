@@ -5,8 +5,8 @@
  */
 
 import { Queue, Worker, type Job } from 'bullmq';
-import { redis } from '../lib/redis';
-import { sendReminder } from '../modules/notifications/notifications.service';
+import { redis } from '../lib/redis.js';
+import { sendReminder } from '../modules/notifications/notifications.service.js';
 import { appConfig } from '@pawroute/config';
 
 const QUEUE_NAME = 'reminders';

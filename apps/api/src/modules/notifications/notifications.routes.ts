@@ -4,8 +4,8 @@
  */
 
 import type { FastifyInstance } from 'fastify';
-import { requireAuth, requireAdmin, requireRole } from '../../middleware/auth';
-import * as notificationsService from './notifications.service';
+import { requireAuth, requireAdmin, requireRole } from '../../middleware/auth.js';
+import * as notificationsService from './notifications.service.js';
 
 export default async function notificationsRoutes(app: FastifyInstance) {
   // ── Customer ───────────────────────────────────────────────────────────────

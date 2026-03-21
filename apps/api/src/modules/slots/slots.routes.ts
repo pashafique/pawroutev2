@@ -4,8 +4,8 @@
  */
 
 import type { FastifyInstance } from 'fastify';
-import { requireAdmin, requireRole } from '../../middleware/auth';
-import * as slotsService from './slots.service';
+import { requireAdmin, requireRole } from '../../middleware/auth.js';
+import * as slotsService from './slots.service.js';
 
 export default async function slotsRoutes(app: FastifyInstance) {
   // ── Public: availability ─────────────────────────────────────────────────
