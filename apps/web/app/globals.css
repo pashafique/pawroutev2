@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary: theme('colors.primary.DEFAULT');
+    --color-accent: theme('colors.accent.DEFAULT');
+    --color-secondary: theme('colors.secondary.DEFAULT');
+    --color-lavender: theme('colors.lavender.DEFAULT');
+    --color-pink: theme('colors.pink.DEFAULT');
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply antialiased;
+  }
+
+  /* Custom scrollbar matching brand */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-surface;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-lavender-dark rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-secondary;
+  }
+}
+
+@layer components {
+  /* Status badge variants */
+  .badge-pending   { @apply bg-[#FFF8E0] text-[#8B6200] border border-[#FFE099]; }
+  .badge-confirmed { @apply bg-lavender text-primary border border-lavender-dark; }
+  .badge-in-progress { @apply bg-[#E8E4F8] text-[#5C4EB0] border border-[#C8C2EC]; }
+  .badge-completed { @apply bg-[#D4EDDA] text-[#155724] border border-[#C3E6CB]; }
+  .badge-cancelled { @apply bg-[#F8D7DA] text-[#721C24] border border-[#F5C6CB]; }
+  .badge-promo     { @apply bg-[#FEE8F2] text-[#8B1A4A] border border-pink-light; }
+
+  /* Cards */
+  .card {
+    @apply bg-white rounded-lg shadow-card border border-border p-4;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply bg-primary text-white rounded-md px-5 py-3 font-medium
+           hover:bg-primary-light active:bg-primary-dark
+           transition-colors duration-150 disabled:opacity-50;
+  }
+
+  /* Accent CTA button */
+  .btn-accent {
+    @apply bg-accent text-white rounded-md px-5 py-3 font-medium
+           hover:bg-accent-light active:bg-accent-dark
+           transition-colors duration-150;
+  }
+
+  /* Form input */
+  .input {
+    @apply w-full border rounded-xl px-4 py-3 text-sm transition
+           focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary
+           placeholder:text-text-secondary/60;
+    border-color: var(--color-lavender-dark, #C8C6F7);
+    color: #1a1a2e;
+  }
+}

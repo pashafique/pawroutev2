@@ -1,0 +1,50 @@
+{
+  "name": "PawRoute — Pet Grooming",
+  "short_name": "PawRoute",
+  "description": "Book professional pet grooming appointments online.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#46467A",
+  "theme_color": "#46467A",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/assets/logo-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/logo-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "pets", "shopping"],
+  "screenshots": [
+    {
+      "src": "/assets/screenshot-home.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Book Grooming",
+      "short_name": "Book",
+      "description": "Book a new grooming appointment",
+      "url": "/book",
+      "icons": [{ "src": "/assets/logo-icon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Appointments",
+      "short_name": "Bookings",
+      "description": "View my appointments",
+      "url": "/appointments",
+      "icons": [{ "src": "/assets/logo-icon.png", "sizes": "192x192" }]
+    }
+  ]
+}

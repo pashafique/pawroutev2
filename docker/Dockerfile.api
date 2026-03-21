@@ -1,0 +1,43 @@
+# PawRoute API — Production Dockerfile
+# Multi-stage build: builder → runner
+
+FROM node:20-alpine AS base
+RUN npm install -g pnpm
+WORKDIR /app
+
+# ─── Dependencies ─────────────────────────────────────────────────────────────
+FROM base AS deps
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/api/package.json ./apps/api/
+COPY packages/config/package.json ./packages/config/
+COPY packages/types/package.json ./packages/types/
+COPY packages/utils/package.json ./packages/utils/
+RUN pnpm install --frozen-lockfile --filter=@pawroute/api...
+
+# ─── Builder ──────────────────────────────────────────────────────────────────
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY . .
+RUN pnpm --filter=@pawroute/api run build
+RUN pnpm --filter=@pawroute/api run db:generate
+
+# ─── Runner ───────────────────────────────────────────────────────────────────
+FROM node:20-alpine AS runner
+RUN addgroup -g 1001 -S nodejs && adduser -S pawroute -u 1001
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+COPY --from=builder --chown=pawroute:nodejs /app/apps/api/dist ./dist
+COPY --from=builder --chown=pawroute:nodejs /app/apps/api/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=pawroute:nodejs /app/apps/api/prisma/schema.prisma ./prisma/schema.prisma
+
+USER pawroute
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:3000/health || exit 1
+
+CMD ["node", "dist/server.js"]

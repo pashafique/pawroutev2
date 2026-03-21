@@ -1,0 +1,710 @@
+// PawRoute V2.0 — Prisma Schema
+// Database: PostgreSQL (Supabase)
+// All timestamps in UTC. Soft deletes via deletedAt on key entities.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum PetType {
+  DOG
+  CAT
+}
+
+enum PetGender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+enum PetSizeCategory {
+  SMALL
+  MEDIUM
+  LARGE
+  XL
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentMethod {
+  CARD
+  UPI
+  WALLET
+  CASH
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum DiscountType {
+  FLAT
+  PERCENTAGE
+}
+
+enum NotificationType {
+  BOOKING_CONFIRMED
+  REMINDER_24H
+  REMINDER_2H
+  COMPLETED
+  CANCELLED
+  PAYMENT_SUCCESS
+  PROMOTIONAL
+}
+
+enum GalleryBeforeAfter {
+  BEFORE
+  AFTER
+  GENERAL
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  GROOMER
+}
+
+enum CancelledBy {
+  CUSTOMER
+  ADMIN
+}
+
+enum LoyaltyTransactionType {
+  EARN
+  REDEEM
+  EXPIRE
+  REFERRAL_BONUS
+}
+
+// ─── User (Customer) ─────────────────────────────────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String   @unique
+  passwordHash String?  @map("password_hash")
+  googleId     String?  @unique @map("google_id")
+  facebookId   String?  @unique @map("facebook_id")
+  profilePhoto String?  @map("profile_photo")
+  otpVerified  Boolean  @default(false) @map("otp_verified")
+  fcmToken     String?  @map("fcm_token")
+  isActive     Boolean  @default(true) @map("is_active")
+  isBlocked    Boolean  @default(false) @map("is_blocked")
+  blockReason  String?  @map("block_reason")
+
+  // Notification preferences (stored as JSON)
+  notifPushBookings    Boolean @default(true) @map("notif_push_bookings")
+  notifPushReminders   Boolean @default(true) @map("notif_push_reminders")
+  notifPushPromotions  Boolean @default(true) @map("notif_push_promotions")
+  notifEmailBookings   Boolean @default(true) @map("notif_email_bookings")
+  notifEmailPromotions Boolean @default(false) @map("notif_email_promotions")
+
+  // Soft delete
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  pets              Pet[]
+  addresses         Address[]
+  appointments      Appointment[]
+  payments          Payment[]       @relation("UserPayments")
+  notifications     Notification[]
+  couponUsages      CouponUsage[]
+  reviews           Review[]
+  loyaltyPoints     LoyaltyPoints?
+  loyaltyTxns       LoyaltyTransaction[]
+  passwordHistory   PasswordHistory[]
+  loginAttempts     LoginAttempt[]
+  adminNotes        CustomerNote[]
+
+  @@index([email, isActive])
+  @@index([phone, isActive])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model PasswordHistory {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("password_history")
+}
+
+model LoginAttempt {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  identifier String  // email or phone
+  success   Boolean
+  ip        String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([identifier, createdAt])
+  @@map("login_attempts")
+}
+
+// ─── Address ─────────────────────────────────────────────────────────────────
+
+model Address {
+  id        String  @id @default(cuid())
+  userId    String  @map("user_id")
+  label     String  @default("Home")
+  street    String
+  city      String
+  state     String
+  country   String
+  zip       String
+  lat       Float?
+  lng       Float?
+  isDefault Boolean @default(false) @map("is_default")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("addresses")
+}
+
+// ─── Pet ──────────────────────────────────────────────────────────────────────
+
+model Pet {
+  id             String          @id @default(cuid())
+  userId         String          @map("user_id")
+  name           String
+  type           PetType
+  breed          String
+  ageYears       Int             @map("age_years")
+  ageMonths      Int             @map("age_months")
+  weightKg       Float           @map("weight_kg")
+  sizeCategory   PetSizeCategory @map("size_category")
+  gender         PetGender
+  photo          String?
+  thumbnailPhoto String?         @map("thumbnail_photo")
+  specialNotes   String?         @map("special_notes")
+  detectedBreed  String?         @map("detected_breed") // AI suggestion
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@index([userId, deletedAt])
+  @@map("pets")
+}
+
+// ─── Service Catalog ─────────────────────────────────────────────────────────
+
+model ServiceCategory {
+  id        String  @id @default(cuid())
+  name      String
+  slug      String  @unique
+  petType   PetType @map("pet_type")
+  sortOrder Int     @default(0) @map("sort_order")
+  isActive  Boolean @default(true) @map("is_active")
+
+  services Service[]
+
+  @@map("service_categories")
+}
+
+model Service {
+  id          String  @id @default(cuid())
+  categoryId  String  @map("category_id")
+  name        String
+  description String
+  durationMin Int     @map("duration_min")
+  sortOrder   Int     @default(0) @map("sort_order")
+  isActive    Boolean @default(true) @map("is_active")
+
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  category     ServiceCategory  @relation(fields: [categoryId], references: [id])
+  pricing      ServicePricing[]
+  addons       Addon[]
+  appointments Appointment[]
+  couponServices CouponService[]
+
+  @@index([categoryId, isActive])
+  @@index([deletedAt])
+  @@map("services")
+}
+
+model ServicePricing {
+  id         String          @id @default(cuid())
+  serviceId  String          @map("service_id")
+  sizeLabel  PetSizeCategory @map("size_label")
+  price      Float
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, sizeLabel])
+  @@map("service_pricing")
+}
+
+model Addon {
+  id        String  @id @default(cuid())
+  serviceId String  @map("service_id")
+  name      String
+  price     Float
+  isActive  Boolean @default(true) @map("is_active")
+
+  deletedAt DateTime? @map("deleted_at")
+
+  service             Service               @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  appointmentAddons   AppointmentAddon[]
+
+  @@index([serviceId, isActive])
+  @@map("addons")
+}
+
+// ─── Time Slots ───────────────────────────────────────────────────────────────
+
+model TimeSlot {
+  id          String    @id @default(cuid())
+  date        String    // YYYY-MM-DD
+  startTime   String    @map("start_time")  // HH:mm
+  endTime     String    @map("end_time")    // HH:mm
+  groomerId   String?   @map("groomer_id")
+  capacity    Int       @default(1)
+  bookedCount Int       @default(0) @map("booked_count")
+  isBlocked   Boolean   @default(false) @map("is_blocked")
+  blockReason String?   @map("block_reason")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  groomer      AdminUser?    @relation(fields: [groomerId], references: [id])
+  appointments Appointment[]
+
+  @@index([date, isBlocked])
+  @@index([date, groomerId])
+  @@map("time_slots")
+}
+
+// ─── Appointment ─────────────────────────────────────────────────────────────
+
+model Appointment {
+  id             String            @id @default(cuid())
+  bookingRef     String            @unique @map("booking_ref")
+  userId         String            @map("user_id")
+  petId          String            @map("pet_id")
+  serviceId      String            @map("service_id")
+  groomerId      String?           @map("groomer_id")
+  slotId         String            @map("slot_id")
+  sizeCategory   PetSizeCategory   @map("size_category")
+  status         AppointmentStatus @default(PENDING)
+  notes          String?
+  internalNotes  String?           @map("internal_notes")
+
+  // Pricing snapshot (captured at booking time, immutable)
+  totalAmount    Float @map("total_amount")
+  serviceFee     Float @map("service_fee")
+  addonFee       Float @default(0) @map("addon_fee")
+  discountAmount Float @default(0) @map("discount_amount")
+  couponCode     String? @map("coupon_code")
+
+  cancelledBy        CancelledBy? @map("cancelled_by")
+  cancellationReason String?      @map("cancellation_reason")
+  cancelledAt        DateTime?    @map("cancelled_at")
+  completedAt        DateTime?    @map("completed_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user     User     @relation(fields: [userId], references: [id])
+  pet      Pet      @relation(fields: [petId], references: [id])
+  service  Service  @relation(fields: [serviceId], references: [id])
+  slot     TimeSlot @relation(fields: [slotId], references: [id])
+  groomer  AdminUser? @relation(fields: [groomerId], references: [id])
+
+  addons     AppointmentAddon[]
+  payment    Payment?
+  activities AppointmentActivity[]
+  review     Review?
+
+  @@index([userId, status])
+  @@index([slotId, status])
+  @@index([bookingRef])
+  @@index([status, createdAt])
+  @@map("appointments")
+}
+
+model AppointmentAddon {
+  id            String @id @default(cuid())
+  appointmentId String @map("appointment_id")
+  addonId       String @map("addon_id")
+  addonName     String @map("addon_name")   // snapshot at booking time
+  addonPrice    Float  @map("addon_price")  // snapshot at booking time
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  addon       Addon       @relation(fields: [addonId], references: [id])
+
+  @@unique([appointmentId, addonId])
+  @@map("appointment_addons")
+}
+
+model AppointmentActivity {
+  id            String @id @default(cuid())
+  appointmentId String @map("appointment_id")
+  action        String
+  performedBy   String @map("performed_by")
+  performedByType String @map("performed_by_type") // CUSTOMER | ADMIN
+  note          String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  @@index([appointmentId])
+  @@map("appointment_activities")
+}
+
+// ─── Payment ──────────────────────────────────────────────────────────────────
+
+model Payment {
+  id             String        @id @default(cuid())
+  appointmentId  String        @unique @map("appointment_id")
+  userId         String        @map("user_id")
+  amount         Float
+  currency       String        @default("AED")
+  method         PaymentMethod
+  status         PaymentStatus @default(PENDING)
+  gatewayRef     String?       @unique @map("gateway_ref") // Stripe PaymentIntent ID
+  clientSecret   String?       @map("client_secret")
+  invoiceUrl     String?       @map("invoice_url")
+  invoiceNumber  String?       @unique @map("invoice_number")
+  refundedAmount Float         @default(0) @map("refunded_amount")
+  refundReason   String?       @map("refund_reason")
+  paidAt         DateTime?     @map("paid_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  user        User        @relation("UserPayments", fields: [userId], references: [id])
+
+  @@index([userId, status])
+  @@index([status, createdAt])
+  @@index([gatewayRef])
+  @@map("payments")
+}
+
+// ─── Coupon ───────────────────────────────────────────────────────────────────
+
+model Coupon {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  discountType  DiscountType @map("discount_type")
+  discountValue Float        @map("discount_value")
+  minOrderValue Float?       @map("min_order_value")
+  usageLimit    Int?         @map("usage_limit")
+  perUserLimit  Int?         @map("per_user_limit")
+  usedCount     Int          @default(0) @map("used_count")
+  validFrom     DateTime     @map("valid_from")
+  validUntil    DateTime?    @map("valid_until")
+  isActive      Boolean      @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  usages         CouponUsage[]
+  couponServices CouponService[]
+
+  @@index([code, isActive])
+  @@map("coupons")
+}
+
+model CouponService {
+  couponId  String @map("coupon_id")
+  serviceId String @map("service_id")
+
+  coupon  Coupon  @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@id([couponId, serviceId])
+  @@map("coupon_services")
+}
+
+model CouponUsage {
+  id            String @id @default(cuid())
+  couponId      String @map("coupon_id")
+  userId        String @map("user_id")
+  appointmentId String @map("appointment_id")
+  usedAt        DateTime @default(now()) @map("used_at")
+
+  coupon Coupon @relation(fields: [couponId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([couponId, userId])
+  @@map("coupon_usages")
+}
+
+// ─── Notification ─────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?            // deep link metadata
+  isRead    Boolean          @default(false) @map("is_read")
+  sentAt    DateTime         @default(now()) @map("sent_at")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, sentAt])
+  @@map("notifications")
+}
+
+model NotificationTemplate {
+  id        String  @id @default(cuid())
+  name      String  @unique
+  title     String
+  body      String
+  isActive  Boolean @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("notification_templates")
+}
+
+model BroadcastLog {
+  id             String   @id @default(cuid())
+  title          String
+  body           String
+  segment        String
+  recipientCount Int      @default(0) @map("recipient_count")
+  deliveredCount Int      @default(0) @map("delivered_count")
+  scheduledAt    DateTime? @map("scheduled_at")
+  sentAt         DateTime? @map("sent_at")
+  createdBy      String   @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("broadcast_logs")
+}
+
+// ─── Gallery ──────────────────────────────────────────────────────────────────
+
+model GalleryImage {
+  id              String             @id @default(cuid())
+  imageUrl        String             @map("image_url")
+  thumbnailUrl    String             @map("thumbnail_url")
+  petType         PetType?           @map("pet_type")
+  beforeAfterType GalleryBeforeAfter @default(GENERAL) @map("before_after_type")
+  caption         String?
+  sortOrder       Int                @default(0) @map("sort_order")
+  uploadedAt      DateTime           @default(now()) @map("uploaded_at")
+
+  @@index([petType, beforeAfterType])
+  @@map("gallery_images")
+}
+
+// ─── Reviews (Phase 2) ───────────────────────────────────────────────────────
+
+model Review {
+  id            String  @id @default(cuid())
+  userId        String  @map("user_id")
+  appointmentId String  @unique @map("appointment_id")
+  rating        Int     // 1-5
+  comment       String?
+  isHidden      Boolean @default(false) @map("is_hidden")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user        User        @relation(fields: [userId], references: [id])
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+
+  @@index([userId])
+  @@map("reviews")
+}
+
+// ─── Loyalty (Phase 2) ───────────────────────────────────────────────────────
+
+model LoyaltyPoints {
+  id               String @id @default(cuid())
+  userId           String @unique @map("user_id")
+  pointsBalance    Int    @default(0) @map("points_balance")
+  lifetimeEarned   Int    @default(0) @map("lifetime_earned")
+  lifetimeRedeemed Int    @default(0) @map("lifetime_redeemed")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("loyalty_points")
+}
+
+model LoyaltyTransaction {
+  id            String                 @id @default(cuid())
+  userId        String                 @map("user_id")
+  appointmentId String?                @map("appointment_id")
+  type          LoyaltyTransactionType
+  points        Int
+  description   String
+  expiresAt     DateTime?              @map("expires_at")
+  createdAt     DateTime               @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+  @@map("loyalty_transactions")
+}
+
+// ─── Admin Users ─────────────────────────────────────────────────────────────
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         AdminRole
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  slots           TimeSlot[]
+  appointments    Appointment[]
+  auditLogs       AuditLog[]
+  customerNotes   CustomerNote[]
+
+  @@map("admin_users")
+}
+
+model AuditLog {
+  id        String  @id @default(cuid())
+  adminId   String  @map("admin_id")
+  action    String
+  entity    String
+  entityId  String? @map("entity_id")
+  meta      Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  admin AdminUser @relation(fields: [adminId], references: [id])
+
+  @@index([adminId, createdAt])
+  @@index([entity, entityId])
+  @@map("audit_logs")
+}
+
+model CustomerNote {
+  id        String @id @default(cuid())
+  userId    String @map("user_id")
+  adminId   String @map("admin_id")
+  note      String
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  admin AdminUser @relation(fields: [adminId], references: [id])
+
+  @@index([userId])
+  @@map("customer_notes")
+}
+
+// ─── FAQ & Business Settings ──────────────────────────────────────────────────
+
+model FAQ {
+  id        String  @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int     @default(0) @map("sort_order")
+  isActive  Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("faqs")
+}
+
+model BusinessSettings {
+  id              String @id @default("singleton") // always one row
+  businessName    String @default("PawRoute") @map("business_name")
+  phone           String @default("")
+  whatsappNumber  String @default("") @map("whatsapp_number")
+  email           String @default("")
+  address         String @default("")
+  city            String @default("")
+  country         String @default("")
+  mapLat          Float? @map("map_lat")
+  mapLng          Float? @map("map_lng")
+  workingHours    Json   @map("working_hours") // WorkingHours JSON
+
+  // Override appConfig.booking defaults at runtime
+  cancellationWindowHours Int   @default(2) @map("cancellation_window_hours")
+  slotHoldMinutes         Int   @default(10) @map("slot_hold_minutes")
+  maxAdvanceBookingDays   Int   @default(30) @map("max_advance_booking_days")
+
+  // Finance
+  vatEnabled  Boolean @default(false) @map("vat_enabled")
+  vatRate     Float   @default(5) @map("vat_rate")
+  vatNumber   String  @default("") @map("vat_number")
+  currency    String  @default("AED")
+  timezone    String  @default("Asia/Dubai")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("business_settings")
+}
+
+// ─── OTP Verification ────────────────────────────────────────────────────────
+
+model OtpVerification {
+  id        String   @id @default(cuid())
+  target    String   // email or phone
+  otp       String
+  type      String   // 'email' | 'whatsapp'
+  expiresAt DateTime @map("expires_at")
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([target, verified])
+  @@map("otp_verifications")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([token])
+  @@map("password_reset_tokens")
+}

@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/LENOVO/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/a2f84902-b703-4a6f-828d-867512d4cf9f/edffd9fe-98a8-4af2-83f5-a1d408018ae0/skills/docx/**)",
+      "Bash(python scripts/office/unpack.py \"C:\\\\Users\\\\LENOVO\\\\Desktop\\\\Pawroute_PRD_v1.0.docx\" \"C:\\\\Users\\\\LENOVO\\\\Desktop\\\\pawroute_unpacked\")",
+      "Bash(pandoc --track-changes=all \"C:\\\\Users\\\\LENOVO\\\\Desktop\\\\Pawroute_PRD_v1.0.docx\" -o \"C:\\\\Users\\\\LENOVO\\\\Desktop\\\\pawroute_prd.md\")",
+      "Bash(sed 's/<w:t[^>]*>//g')",
+      "Bash(grep -v '^$')",
+      "Bash(find C:/pawroutev2 -type f -name *)",
+      "Bash(pnpm --version)",
+      "Bash(npm --version)",
+      "Bash(npm install:*)",
+      "Bash(turbo --version)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm approve-builds:*)",
+      "Bash(node -e \"const c=require\\(''crypto''\\);console.log\\(''ACCESS=''+c.randomBytes\\(64\\).toString\\(''hex''\\)\\);console.log\\(''REFRESH=''+c.randomBytes\\(64\\).toString\\(''hex''\\)\\);console.log\\(''ADMIN=''+c.randomBytes\\(64\\).toString\\(''hex''\\)\\)\")",
+      "Bash(cp ../../.env .env.local)",
+      "Bash(ls .env*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx tsx:*)",
+      "Bash(timeout 12 node --env-file=.env --import tsx/esm src/server.ts)",
+      "Bash(C:/pawroutev2/apps/api/.env:*)",
+      "Bash(timeout 15 node --env-file=.env --import tsx/esm src/server.ts)",
+      "Bash(python3:*)",
+      "Bash(node -e \":*)",
+      "Bash(pnpm add:*)",
+      "Bash(Get-Process -Name \"node\" -ErrorAction SilentlyContinue)",
+      "Bash(Stop-Process -Force)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(netstat -ano)",
+      "Bash(cmd /c \"taskkill /PID 51664 /F\")",
+      "Bash(cmd /c 'taskkill /F /PID 51664')",
+      "Bash(ls C:/pawroutev2/node_modules/.pnpm/fastify-type-provider-zod*/node_modules/fastify-type-provider-zod/)",
+      "Bash(node -e \"const m = require\\(''''./apps/api/node_modules/fastify-type-provider-zod/dist/index.js''''\\); console.log\\(Object.keys\\(m\\)\\)\")",
+      "Bash(node -e \"import\\(''''./apps/api/node_modules/fastify-type-provider-zod/dist/index.js''''\\).then\\(m => console.log\\(Object.keys\\(m\\)\\)\\)\")",
+      "Bash(pnpm remove:*)",
+      "Bash(cmd /c \"taskkill /F /PID 51664 2>&1\")",
+      "Bash(wmic process:*)",
+      "Bash(xargs -I{} wmic process where ProcessId={} delete)",
+      "Bash(node:*)"
+    ]
+  }
+}

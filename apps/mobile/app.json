@@ -1,0 +1,68 @@
+{
+  "expo": {
+    "name": "PawRoute",
+    "slug": "pawroute",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#46467A"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.pawroute.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Allow PawRoute to access your camera to upload pet photos.",
+        "NSPhotoLibraryUsageDescription": "Allow PawRoute to access your photos to upload pet images.",
+        "NSFaceIDUsageDescription": "Use Face ID to sign in to PawRoute securely."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#46467A"
+      },
+      "package": "com.pawroute.app",
+      "versionCode": 1,
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      ["expo-notifications", { "icon": "./assets/notification-icon.png", "color": "#46467A" }],
+      ["expo-splash-screen", { "backgroundColor": "#46467A", "image": "./assets/splash.png", "resizeMode": "contain" }]
+    ],
+    "scheme": "pawroute",
+    "extra": {
+      "eas": { "projectId": "" },
+      "apiUrl": "http://localhost:3000",
+      "sentryDsn": ""
+    },
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "",
+            "project": "pawroute-mobile"
+          }
+        }
+      ]
+    }
+  }
+}
