@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { appConfig } from '@pawroute/config';
 import ChatWidget from '../../components/ChatWidget';
+import AuthGuard from '../../components/AuthGuard';
 
 const c = appConfig.brand.colors;
 
@@ -14,6 +15,7 @@ const navItems = [
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
+    <AuthGuard>
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#F8F7FF' }}>
       {/* Top nav */}
       <header className="sticky top-0 z-50 shadow-sm" style={{ backgroundColor: c.primary }}>
@@ -58,5 +60,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="md:hidden h-16" />
       <ChatWidget />
     </div>
+    </AuthGuard>
   );
 }

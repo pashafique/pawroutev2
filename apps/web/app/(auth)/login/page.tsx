@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { appConfig } from '@pawroute/config';
 import { login } from '../../../lib/auth';
@@ -10,6 +10,8 @@ const c = appConfig.brand.colors;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const next = searchParams.get('next') ?? '/home';
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,7 +23,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(identifier, password);
-      router.push('/');
+      router.push(next);
     } catch (err: any) {
       setError(err.response?.data?.message ?? err.message ?? 'Login failed');
     } finally {
