@@ -37,7 +37,8 @@
       "Bash(cmd /c \"taskkill /F /PID 51664 2>&1\")",
       "Bash(wmic process:*)",
       "Bash(xargs -I{} wmic process where ProcessId={} delete)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(node -e \"console.log\\(require\\(''./apps/web/node_modules/next/package.json''\\).version\\)\")"
     ]
   }
 }
