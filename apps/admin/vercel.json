@@ -7,10 +7,6 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "env": {
-    "VITE_API_URL": "@pawroute-api-url",
-    "VITE_SENTRY_DSN": "@sentry-admin-dsn"
-  },
   "headers": [
     {
       "source": "/(.*)",
