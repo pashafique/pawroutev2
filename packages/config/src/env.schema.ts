@@ -11,16 +11,29 @@ import { z } from 'zod';
 // start without every account being configured. In production all are required.
 const isProd = process.env.NODE_ENV === 'production';
 
-// Treat empty strings the same as undefined so `KEY=` in .env is skipped.
-const emptyToUndefined = z.string().transform((v) => v === '' ? undefined : v);
+// z.preprocess runs BEFORE type validation — handles absent (undefined) and
+// empty-string env vars identically so `KEY=` in .env is treated as unset.
+const coerceOptStr = (extra?: (s: z.ZodString) => z.ZodTypeAny) =>
+  z.preprocess(
+    (v) => (v === '' || v === undefined || v === null ? undefined : v),
+    extra ? extra(z.string()).optional() : z.string().optional()
+  );
 
-// Optional string — empty string treated as absent.
-const optStr = emptyToUndefined.pipe(z.string().optional());
-// Optional URL — empty string treated as absent.
-const optUrl = emptyToUndefined.pipe(z.string().url().optional());
+const optStr = coerceOptStr();
+const optUrl  = z.preprocess(
+  (v) => (v === '' || v === undefined || v === null ? undefined : v),
+  z.string().url().optional()
+);
 
+// In dev: make any schema optional with empty-string coercion.
+// In prod: use the schema exactly as given (required).
 const prodOnly = <T extends z.ZodTypeAny>(schema: T) =>
-  isProd ? schema : emptyToUndefined.pipe(schema.optional() as z.ZodTypeAny) as unknown as z.ZodOptional<T>;
+  isProd
+    ? schema
+    : (z.preprocess(
+        (v) => (v === '' || v === undefined || v === null ? undefined : v),
+        schema.optional() as z.ZodTypeAny
+      ) as unknown as z.ZodOptional<T>);
 
 const envSchema = z.object({
   // ─── Node ───────────────────────────────────────────────────────────────
@@ -34,11 +47,11 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1, 'SUPABASE_SERVICE_ROLE_KEY is required'),
   SUPABASE_STORAGE_BUCKET: z.string().default('pawroute-media'),
 
-  // ─── Redis (Upstash) — required in prod; optional in dev (slot locking degrades) ──
+  // ─── Redis (Upstash) — required in prod; optional in dev ─────────────
   UPSTASH_REDIS_REST_URL: prodOnly(z.string().url('UPSTASH_REDIS_REST_URL must be a valid URL')),
   UPSTASH_REDIS_REST_TOKEN: prodOnly(z.string().min(1, 'UPSTASH_REDIS_REST_TOKEN is required')),
 
-  // ─── JWT Auth — always required ──────────────────────────────────────
+  // ─── JWT Auth — always required ───────────────────────────────────────
   JWT_ACCESS_SECRET: z
     .string()
     .min(32, 'JWT_ACCESS_SECRET must be at least 32 characters for security'),
@@ -49,58 +62,58 @@ const envSchema = z.object({
     .string()
     .min(32, 'JWT_ADMIN_SECRET must be at least 32 characters for security'),
 
-  // ─── Google (OAuth + Gemini) — always optional (SSO + AI chatbot are additive features)
+  // ─── Google (OAuth + Gemini) — always optional ───────────────────────
   GOOGLE_CLIENT_ID: optStr,
   GOOGLE_CLIENT_SECRET: optStr,
   GEMINI_API_KEY: optStr,
 
   // ─── Facebook OAuth — always optional ────────────────────────────────
-  FACEBOOK_APP_ID: z.string().optional(),
-  FACEBOOK_APP_SECRET: z.string().optional(),
+  FACEBOOK_APP_ID: optStr,
+  FACEBOOK_APP_SECRET: optStr,
 
-  // ─── Stripe — optional in dev (payment flow won't work until set) ─────
+  // ─── Stripe — optional in dev; required in prod ───────────────────────
   STRIPE_SECRET_KEY: prodOnly(
     z.string().startsWith('sk_', 'STRIPE_SECRET_KEY must start with sk_').min(1)
   ),
   // Webhook secret is set AFTER first deploy (need live URL for Stripe webhook endpoint).
-  // Payments work without it; only webhook verification is skipped.
-  STRIPE_WEBHOOK_SECRET: emptyToUndefined.pipe(
-    z.string().startsWith('whsec_', 'STRIPE_WEBHOOK_SECRET must start with whsec_').optional()
+  // Payments work without it; only webhook signature verification is skipped.
+  STRIPE_WEBHOOK_SECRET: coerceOptStr(
+    (s) => s.startsWith('whsec_', 'STRIPE_WEBHOOK_SECRET must start with whsec_')
   ),
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: emptyToUndefined.pipe(
-    z.string().startsWith('pk_', 'STRIPE_PUBLISHABLE_KEY must start with pk_').optional()
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: coerceOptStr(
+    (s) => s.startsWith('pk_', 'STRIPE_PUBLISHABLE_KEY must start with pk_')
   ),
 
-  // ─── Firebase FCM — optional in dev (push notifications skip gracefully) ─
+  // ─── Firebase FCM — optional in dev (push notifications skip gracefully)
   FIREBASE_PROJECT_ID: prodOnly(z.string().min(1, 'FIREBASE_PROJECT_ID is required')),
   FIREBASE_PRIVATE_KEY: prodOnly(z.string().min(1, 'FIREBASE_PRIVATE_KEY is required')),
   FIREBASE_CLIENT_EMAIL: prodOnly(
     z.string().email('FIREBASE_CLIENT_EMAIL must be a valid email')
   ),
 
-  // ─── Resend (Email) — optional in dev (emails logged to console instead) ─
+  // ─── Resend (Email) — optional in dev (emails logged to console instead)
   RESEND_API_KEY: prodOnly(
     z.string().startsWith('re_', 'RESEND_API_KEY must start with re_').min(1)
   ),
   EMAIL_FROM: z.string().email().default('noreply@pawroute.com'),
 
-  // ─── WhatsApp Cloud API ──────────────────────────────────────────────────
+  // ─── WhatsApp Cloud API — always optional ─────────────────────────────
   WHATSAPP_PHONE_NUMBER_ID: optStr,
   WHATSAPP_ACCESS_TOKEN: optStr,
 
-  // ─── Hugging Face ─────────────────────────────────────────────────────────
+  // ─── Hugging Face — always optional ───────────────────────────────────
   HUGGINGFACE_API_KEY: optStr,
 
-  // ─── Frontend URLs ────────────────────────────────────────────────────────
+  // ─── Frontend URLs ────────────────────────────────────────────────────
   NEXT_PUBLIC_API_URL: z.string().url().default('http://localhost:3000'),
   NEXT_PUBLIC_WEB_URL: z.string().url().default('http://localhost:3001'),
   NEXT_PUBLIC_ADMIN_URL: z.string().url().default('http://localhost:3002'),
 
-  // ─── Sentry ──────────────────────────────────────────────────────────────
+  // ─── Sentry ───────────────────────────────────────────────────────────
   SENTRY_DSN: optUrl,
   NEXT_PUBLIC_SENTRY_DSN: optUrl,
 
-  // ─── App Settings ────────────────────────────────────────────────────────
+  // ─── App Settings ─────────────────────────────────────────────────────
   ADMIN_IP_ALLOWLIST: optStr, // comma-separated IPs for admin panel
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
 });
