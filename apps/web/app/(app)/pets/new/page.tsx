@@ -48,7 +48,7 @@ export default function NewPetPage() {
         weightKg: Number(form.weightKg),
         ageYears: Number(form.ageYears),
         ageMonths: Number(form.ageMonths),
-        specialNotes: form.specialNotes || undefined,
+        ...(form.specialNotes ? { specialNotes: form.specialNotes } : {}),
       });
 
       if (photo) {
