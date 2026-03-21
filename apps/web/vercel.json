@@ -1,6 +1,6 @@
 {
   "framework": "nextjs",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "buildCommand": "cd ../.. && pnpm --filter @pawroute/web run build",
+  "buildCommand": "cd ../.. && pnpm turbo build --filter=@pawroute/web",
   "outputDirectory": ".next"
 }
