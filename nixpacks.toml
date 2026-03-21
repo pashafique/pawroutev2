@@ -1,14 +1,11 @@
 # nixpacks.toml — PawRoute V2.0 monorepo build config for Railway
-# Nixpacks reads this from the repo root so it has access to ALL workspace packages.
+# pnpm installed via Nix (not npm) so it's in PATH for all subsequent layers.
 
 [phases.setup]
-nixPkgs = ["nodejs_20"]
+nixPkgs = ["nodejs_20", "nodePackages.pnpm"]
 
 [phases.install]
-cmds = [
-  "npm install -g pnpm",
-  "pnpm install --frozen-lockfile"
-]
+cmds = ["pnpm install --frozen-lockfile"]
 
 [phases.build]
 cmds = ["pnpm --filter @pawroute/api run build"]
