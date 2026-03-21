@@ -308,7 +308,7 @@ function BookingFlow() {
               const info = calMap[dateStr];
               const isPast = dateStr < today;
               const isSelected = selectedDate === dateStr;
-              const hasSlots = info?.available > 0;
+              const hasSlots = (info?.available ?? 0) > 0;
 
               return (
                 <button key={day}
