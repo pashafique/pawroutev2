@@ -60,7 +60,8 @@ export default async function aiRoutes(app: FastifyInstance) {
         select: { question: true, answer: true },
       });
 
-      const response = await chatWithGemini(message, faqs);
+      const faqContext = faqs.map((f) => `Q: ${f.question}\nA: ${f.answer}`).join('\n\n');
+      const response = await chatWithGemini(message, [], faqContext);
       reply.send({ success: true, data: { response } });
     },
   });

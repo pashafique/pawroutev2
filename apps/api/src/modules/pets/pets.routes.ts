@@ -17,7 +17,7 @@ export default async function petsRoutes(app: FastifyInstance) {
   app.get('/', {
     schema: { tags: ['pets'], summary: "List current user's pets" },
     handler: async (req, reply) => {
-      const pets = await petsService.listPets(req.user!.id);
+      const pets = await petsService.listPets((req.user as { id: string })!.id);
       reply.send({ success: true, data: pets });
     },
   });
@@ -27,7 +27,7 @@ export default async function petsRoutes(app: FastifyInstance) {
     schema: { tags: ['pets'], summary: 'Get a single pet' },
     handler: async (req, reply) => {
       const { id } = req.params as { id: string };
-      const pet = await petsService.getPet(id, req.user!.id);
+      const pet = await petsService.getPet(id, (req.user as { id: string })!.id);
       reply.send({ success: true, data: pet });
     },
   });
@@ -37,8 +37,8 @@ export default async function petsRoutes(app: FastifyInstance) {
     schema: { tags: ['pets'], summary: 'Create a new pet' },
     handler: async (req, reply) => {
       const pet = await petsService.createPet(
-        req.user!.id,
-        req.body as z.infer<typeof PetSchema>
+        (req.user as { id: string })!.id,
+        req.body as any
       );
       reply.code(201).send({ success: true, data: pet });
     },
@@ -51,7 +51,7 @@ export default async function petsRoutes(app: FastifyInstance) {
       const { id } = req.params as { id: string };
       const pet = await petsService.updatePet(
         id,
-        req.user!.id,
+        (req.user as { id: string })!.id,
         req.body as z.infer<typeof UpdatePetSchema>
       );
       reply.send({ success: true, data: pet });
@@ -63,7 +63,7 @@ export default async function petsRoutes(app: FastifyInstance) {
     schema: { tags: ['pets'], summary: 'Soft-delete a pet' },
     handler: async (req, reply) => {
       const { id } = req.params as { id: string };
-      await petsService.deletePet(id, req.user!.id);
+      await petsService.deletePet(id, (req.user as { id: string })!.id);
       reply.send({ success: true, message: 'Pet deleted' });
     },
   });
@@ -85,7 +85,7 @@ export default async function petsRoutes(app: FastifyInstance) {
       const buffer = Buffer.concat(chunks);
       const mimeType = data.mimetype;
 
-      const result = await petsService.uploadPetPhoto(id, req.user!.id, buffer, mimeType);
+      const result = await petsService.uploadPetPhoto(id, (req.user as { id: string })!.id, buffer, mimeType);
       reply.send({ success: true, data: result });
     },
   });
@@ -95,7 +95,7 @@ export default async function petsRoutes(app: FastifyInstance) {
     schema: { tags: ['pets'], summary: 'Remove pet photo' },
     handler: async (req, reply) => {
       const { id } = req.params as { id: string };
-      await petsService.deletePetPhoto(id, req.user!.id);
+      await petsService.deletePetPhoto(id, (req.user as { id: string })!.id);
       reply.send({ success: true, message: 'Photo removed' });
     },
   });

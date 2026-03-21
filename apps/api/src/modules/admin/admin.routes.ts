@@ -40,7 +40,7 @@ async function adminRoutes(app: FastifyInstance) {
     preHandler: [requireAdmin],
     schema: { tags: ['admin'], summary: 'Admin logout' },
     handler: async (req, reply) => {
-      await adminLogout(req.admin!.id);
+      await adminLogout((req as any).admin.id);
       reply.send({ success: true, message: 'Logged out' });
     },
   });
@@ -52,7 +52,7 @@ async function adminRoutes(app: FastifyInstance) {
     handler: async (req, reply) => {
       const { prisma } = await import('../../lib/prisma.js');
       const admin = await prisma.adminUser.findUnique({
-        where: { id: req.admin!.id },
+        where: { id: (req as any).admin.id },
         select: { id: true, name: true, email: true, role: true, createdAt: true },
       });
       if (!admin) return reply.code(404).send({ success: false, error: 'Admin not found' });

@@ -64,7 +64,7 @@ export default async function paymentsRoutes(app: FastifyInstance) {
         await paymentsService.handleStripeWebhook(event);
         return { received: true };
       } catch (err: any) {
-        app.log.error('Stripe webhook error:', err.message);
+        app.log.error({ err }, 'Stripe webhook error');
         return reply.code(400).send({ error: err.message });
       }
     }

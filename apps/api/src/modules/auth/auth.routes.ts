@@ -28,7 +28,7 @@ async function authRoutes(app: FastifyInstance) {
       summary: 'Register a new customer account',
     },
     handler: async (req, reply) => {
-      const result = await authService.register(req.body as z.infer<typeof RegisterSchema>);
+      const result = await authService.register(req.body as any);
       reply.code(201).send({ success: true, data: result });
     },
   });
@@ -102,7 +102,7 @@ async function authRoutes(app: FastifyInstance) {
     preHandler: [requireAuth],
     schema: { tags: ['auth'], summary: 'Revoke refresh token and log out' },
     handler: async (req, reply) => {
-      await authService.logout(req.user!.id);
+      await authService.logout((req.user as { id: string })!.id);
       reply.send({ success: true, message: 'Logged out' });
     },
   });
@@ -178,7 +178,7 @@ async function authRoutes(app: FastifyInstance) {
     handler: async (req, reply) => {
       const { prisma } = await import('../../lib/prisma.js');
       const user = await prisma.user.findUnique({
-        where: { id: req.user!.id },
+        where: { id: (req.user as { id: string })!.id },
         select: {
           id: true,
           name: true,

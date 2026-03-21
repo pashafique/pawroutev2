@@ -61,7 +61,7 @@ export default async function galleryRoutes(app: FastifyInstance) {
 
       if (!imageBuffer) return reply.code(400).send({ error: 'Image file required' });
 
-      const { webpBuffer, thumbnailBuffer } = await processImage(imageBuffer);
+      const { full: webpBuffer, thumbnail: thumbnailBuffer } = await processImage(imageBuffer, mimeType);
       const ts = Date.now();
       const imagePath = `gallery/${ts}.webp`;
       const thumbPath = `gallery/thumbs/${ts}.webp`;
