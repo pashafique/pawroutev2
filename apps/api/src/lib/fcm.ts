@@ -9,17 +9,36 @@ const FIREBASE_CONFIGURED =
   !!process.env['FIREBASE_PRIVATE_KEY'] &&
   !!process.env['FIREBASE_CLIENT_EMAIL'];
 
-if (FIREBASE_CONFIGURED && !getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env['FIREBASE_PROJECT_ID']!,
-      privateKey: process.env['FIREBASE_PRIVATE_KEY']!.replace(/\\n/g, '\n'),
-      clientEmail: process.env['FIREBASE_CLIENT_EMAIL']!,
-    }),
-  });
+/**
+ * Normalize the Firebase private key regardless of how it was stored:
+ * - Strips surrounding quotes (Railway/env parsers sometimes add them)
+ * - Converts literal \n sequences to actual newlines
+ * - Works whether the key already has real newlines or literal \n
+ */
+function normalizePrivateKey(raw: string): string {
+  return raw
+    .replace(/^["']|["']$/g, '') // strip wrapping quotes if any
+    .replace(/\\n/g, '\n');       // literal \n → actual newline
 }
 
-const messaging = FIREBASE_CONFIGURED ? getMessaging() : null;
+let firebaseInitialized = false;
+if (FIREBASE_CONFIGURED && !getApps().length) {
+  try {
+    initializeApp({
+      credential: cert({
+        projectId: process.env['FIREBASE_PROJECT_ID']!,
+        privateKey: normalizePrivateKey(process.env['FIREBASE_PRIVATE_KEY']!),
+        clientEmail: process.env['FIREBASE_CLIENT_EMAIL']!,
+      }),
+    });
+    firebaseInitialized = true;
+  } catch (err) {
+    // Log but don't crash — server starts without push notification support
+    console.error('[FCM] Firebase Admin init failed (push notifications disabled):', err);
+  }
+}
+
+const messaging = firebaseInitialized ? getMessaging() : null;
 
 export interface PushPayload {
   title: string;
