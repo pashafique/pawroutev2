@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
 const { withSentryConfig } = require('@sentry/nextjs');
 const withPWA = require('next-pwa')({
   dest: 'public',
@@ -9,6 +10,10 @@ const withPWA = require('next-pwa')({
 
 const nextConfig = {
   transpilePackages: ['@pawroute/config', '@pawroute/types', '@pawroute/utils'],
+  experimental: {
+    outputFileTracingRoot: path.join(__dirname, '../../'),
+    instrumentationHook: true,
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '*.supabase.co' },
