@@ -8,7 +8,8 @@ nixPkgs = ["nodejs_20", "nodePackages.pnpm"]
 cmds = ["pnpm install --frozen-lockfile"]
 
 [phases.build]
-cmds = ["pnpm --filter @pawroute/api run build"]
+# turbo respects "dependsOn": ["^build"] — builds config/types/utils before api
+cmds = ["pnpm turbo build --filter=@pawroute/api"]
 
 [start]
 cmd = "node apps/api/dist/server.js"
