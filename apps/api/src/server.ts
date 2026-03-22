@@ -39,8 +39,19 @@ async function bootstrap() {
     contentSecurityPolicy: env.NODE_ENV === 'production',
   });
 
+  const allowedOrigins = [env.NEXT_PUBLIC_WEB_URL, env.NEXT_PUBLIC_ADMIN_URL];
   await server.register(import('@fastify/cors'), {
-    origin: [env.NEXT_PUBLIC_WEB_URL, env.NEXT_PUBLIC_ADMIN_URL],
+    origin: (origin, cb) => {
+      // Allow requests with no origin (mobile apps, curl, Postman)
+      if (!origin) return cb(null, true);
+      // Allow exact matches from env config
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+      // Allow all Vercel preview deployments and localhost
+      if (/\.vercel\.app$/.test(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+        return cb(null, true);
+      }
+      cb(new Error(`CORS: origin ${origin} not allowed`), false);
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   });
