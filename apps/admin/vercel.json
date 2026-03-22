@@ -3,7 +3,6 @@
   "buildCommand": "cd ../.. && pnpm --filter @pawroute/admin build",
   "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
   "outputDirectory": "dist",
-  "regions": ["dxb1"],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
