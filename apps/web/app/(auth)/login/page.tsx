@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { appConfig } from '@pawroute/config';
@@ -8,7 +8,7 @@ import { login } from '../../../lib/auth';
 
 const c = appConfig.brand.colors;
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get('next') ?? '/home';
@@ -122,5 +122,13 @@ export default function LoginPage() {
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="animate-pulse h-64 bg-gray-100 rounded-xl" />}>
+      <LoginForm />
+    </Suspense>
   );
 }
