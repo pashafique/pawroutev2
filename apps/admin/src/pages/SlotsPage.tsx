@@ -256,7 +256,6 @@ export default function SlotsPage() {
         loading={loading}
         pagination={{ pageSize: 50 }}
         size="small"
-        defaultSortOrder="ascend"
       />
 
       {/* Create Slot Modal */}

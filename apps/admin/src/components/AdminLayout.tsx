@@ -2,7 +2,7 @@ import { Layout, Menu, theme } from 'antd';
 import {
   DashboardOutlined, CalendarOutlined, TeamOutlined, ShopOutlined,
   ClockCircleOutlined, CreditCardOutlined, TagOutlined, PictureOutlined,
-  BellOutlined, SettingOutlined, UserSwitchOutlined, PawPrint,
+  BellOutlined, SettingOutlined, UserSwitchOutlined,
 } from '@ant-design/icons';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { appConfig } from '@pawroute/config';
