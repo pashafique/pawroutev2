@@ -14,7 +14,7 @@ import {
   verifyRefreshToken,
   verifyPasswordResetToken,
 } from '../../utils/tokens.js';
-import { sendOtpEmail, sendPasswordResetEmail } from '../../lib/resend.js';
+import { sendOtpEmail, sendPasswordResetEmail, sendWelcomeEmail } from '../../lib/resend.js';
 import { sendWhatsappOtp } from '../../lib/whatsapp.js';
 
 const { auth } = appConfig;
@@ -63,6 +63,11 @@ export async function register(input: RegisterInput) {
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
   await storeRefreshToken(user.id, refreshToken);
+
+  // Send welcome email (non-blocking — don't fail registration if email fails)
+  sendWelcomeEmail(user.email, user.name).catch(err =>
+    console.warn('[Auth] Welcome email failed:', err?.message)
+  );
 
   return { user, accessToken, refreshToken };
 }

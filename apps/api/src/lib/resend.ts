@@ -23,6 +23,47 @@ const resend = { emails: { send: sendEmail } } as unknown as Resend;
 const FROM = process.env['EMAIL_FROM'] ?? 'noreply@pawroute.com';
 const c = appConfig.brand.colors;
 
+// ─── Welcome Email ────────────────────────────────────────────────────────────
+
+export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
+  const bookUrl = `${appConfig.product.website}/book`;
+  await resend.emails.send({
+    from: `${appConfig.product.name} <${FROM}>`,
+    to,
+    subject: `Welcome to ${appConfig.product.name}, ${name}! 🐾`,
+    html: `
+      <div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
+        <div style="text-align: center; margin-bottom: 32px;">
+          <div style="font-size: 48px; margin-bottom: 8px;">🐾</div>
+          <h1 style="color: ${c.primary}; font-size: 24px; margin: 0;">${appConfig.product.name}</h1>
+          <p style="color: ${c.textSecondary}; margin: 4px 0 0;">${appConfig.product.tagline}</p>
+        </div>
+
+        <div style="background: ${c.lavender}; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+          <h2 style="color: ${c.primary}; margin: 0 0 12px; font-size: 20px;">Welcome, ${name}! 👋</h2>
+          <p style="color: ${c.textPrimary}; margin: 0 0 16px; line-height: 1.6;">
+            Your account has been created successfully. We're so excited to have you and your furry friend join the ${appConfig.product.name} family!
+          </p>
+          <p style="color: ${c.textSecondary}; margin: 0; font-size: 14px; line-height: 1.6;">
+            You can now book grooming appointments, track your pet's history, and receive reminders — all in one place.
+          </p>
+        </div>
+
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${bookUrl}"
+             style="background: ${c.primary}; color: #fff; text-decoration: none; padding: 14px 36px; border-radius: 12px; font-weight: 600; font-size: 15px; display: inline-block;">
+            Book Your First Appointment
+          </a>
+        </div>
+
+        <p style="color: ${c.textSecondary}; font-size: 12px; text-align: center; margin: 0;">
+          ${appConfig.product.name} — ${appConfig.product.tagline}
+        </p>
+      </div>
+    `,
+  });
+}
+
 // ─── OTP Email ────────────────────────────────────────────────────────────────
 
 export async function sendOtpEmail(to: string, otp: string, name: string): Promise<void> {
