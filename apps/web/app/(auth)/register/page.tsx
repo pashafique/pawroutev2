@@ -8,29 +8,43 @@ import { register, sendOtp } from '../../../lib/auth';
 
 const c = appConfig.brand.colors;
 
+function friendlyRegisterError(err: any): string {
+  const msg: string = err.response?.data?.error ?? err.message ?? '';
+  if (msg.toLowerCase().includes('email') && msg.toLowerCase().includes('registered'))
+    return 'An account with this email already exists. Please sign in instead.';
+  if (msg.toLowerCase().includes('phone') && msg.toLowerCase().includes('registered'))
+    return 'An account with this phone number already exists. Please sign in instead.';
+  if (!msg || msg.toLowerCase().includes('network'))
+    return 'Unable to reach the server. Please try again shortly.';
+  return msg || 'Registration failed. Please try again.';
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const [step, setStep] = useState<'form' | 'otp'>('form');
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
     try {
       await register(form);
+      setSuccess('User account created successfully! Please verify your email.');
       // Send OTP to verify email
       if (appConfig.features.emailOtp) {
         await sendOtp(form.email, 'email', form.name);
-        setStep('otp');
+        setTimeout(() => setStep('otp'), 1200);
       } else {
-        router.push('/');
+        setTimeout(() => router.push('/'), 1200);
       }
     } catch (err: any) {
-      setError(err.response?.data?.error ?? err.message ?? 'Registration failed');
+      setError(friendlyRegisterError(err));
     } finally {
       setLoading(false);
     }
@@ -104,6 +118,7 @@ export default function RegisterPage() {
       <h2 className="text-2xl font-bold mb-1" style={{ color: c.primary }}>Create account</h2>
       <p className="text-sm mb-6" style={{ color: c.textSecondary }}>Book grooming for your pet in minutes</p>
 
+      {success && <p className="text-sm text-green-700 mb-4 bg-green-50 rounded-lg px-3 py-2">{success}</p>}
       {error && <p className="text-sm text-red-600 mb-4 bg-red-50 rounded-lg px-3 py-2">{error}</p>}
 
       <form onSubmit={handleRegister} className="space-y-4">
