@@ -3,8 +3,12 @@ import { appConfig } from '@pawroute/config';
 
 const genAI = new GoogleGenerativeAI(process.env['GEMINI_API_KEY']!);
 
+// Allow model override via env var so it can be changed without a full rebuild
+const CHAT_MODEL = process.env['GEMINI_MODEL'] ?? 'gemini-2.0-flash';
+const INSIGHTS_MODEL = process.env['GEMINI_INSIGHTS_MODEL'] ?? 'gemini-2.0-flash';
+
 const chatModel = genAI.getGenerativeModel({
-  model: appConfig.ai.chatbot.model,
+  model: CHAT_MODEL,
   generationConfig: {
     maxOutputTokens: appConfig.ai.chatbot.maxTokens,
     temperature: appConfig.ai.chatbot.temperature,
@@ -13,7 +17,7 @@ const chatModel = genAI.getGenerativeModel({
 });
 
 const insightsModel = genAI.getGenerativeModel({
-  model: appConfig.ai.weeklyInsights.model,
+  model: INSIGHTS_MODEL,
 });
 
 export interface ChatMessage {
