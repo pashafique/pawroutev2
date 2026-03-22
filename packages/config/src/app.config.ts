@@ -394,7 +394,7 @@ export const appConfig = {
   // ─── AI Configuration ────────────────────────────────────────────────────
   ai: {
     chatbot: {
-      model: 'gemini-1.5-flash', // Free tier: 15 req/min, 1M tokens/day
+      model: 'gemini-2.0-flash', // Free tier: 15 req/min, 1M tokens/day
       maxTokens: 1024,
       temperature: 0.7,
       systemPrompt:
@@ -410,7 +410,7 @@ export const appConfig = {
       maxSuggestions: 3,
     },
     weeklyInsights: {
-      model: 'gemini-1.5-flash',
+      model: 'gemini-2.0-flash',
       cronSchedule: '0 8 * * 1', // Every Monday at 8 AM (timezone from locale)
       enabled: true,
     },
