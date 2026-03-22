@@ -27,39 +27,86 @@ const c = appConfig.brand.colors;
 
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
   const bookUrl = `${appConfig.product.website}/book`;
+  const firstName = name.split(' ')[0];
   await resend.emails.send({
     from: `${appConfig.product.name} <${FROM}>`,
     to,
-    subject: `Welcome to ${appConfig.product.name}, ${name}! 🐾`,
+    subject: `Welcome to ${appConfig.product.name}, ${firstName}! 🐾`,
     html: `
-      <div style="font-family: Inter, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px;">
-        <div style="text-align: center; margin-bottom: 32px;">
-          <div style="font-size: 48px; margin-bottom: 8px;">🐾</div>
-          <h1 style="color: ${c.primary}; font-size: 24px; margin: 0;">${appConfig.product.name}</h1>
-          <p style="color: ${c.textSecondary}; margin: 4px 0 0;">${appConfig.product.tagline}</p>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><title>Welcome to ${appConfig.product.name}</title></head>
+<body style="margin:0;padding:0;background:#f4f0fb;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f0fb;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
 
-        <div style="background: ${c.lavender}; border-radius: 16px; padding: 24px; margin-bottom: 24px;">
-          <h2 style="color: ${c.primary}; margin: 0 0 12px; font-size: 20px;">Welcome, ${name}! 👋</h2>
-          <p style="color: ${c.textPrimary}; margin: 0 0 16px; line-height: 1.6;">
-            Your account has been created successfully. We're so excited to have you and your furry friend join the ${appConfig.product.name} family!
+        <!-- Header -->
+        <tr><td style="background:linear-gradient(135deg,${c.primary} 0%,#7c3aed 100%);border-radius:20px 20px 0 0;padding:40px 40px 32px;text-align:center;">
+          <div style="font-size:52px;margin-bottom:12px;">🐾</div>
+          <h1 style="color:#ffffff;font-size:28px;font-weight:800;margin:0 0 6px;letter-spacing:-0.5px;">${appConfig.product.name}</h1>
+          <p style="color:rgba(255,255,255,0.8);font-size:14px;margin:0;">${appConfig.product.tagline}</p>
+        </td></tr>
+
+        <!-- Hero Body -->
+        <tr><td style="background:#ffffff;padding:40px 40px 32px;">
+          <h2 style="color:#1a1a2e;font-size:24px;font-weight:700;margin:0 0 8px;">Welcome aboard, ${firstName}! 👋</h2>
+          <p style="color:#555577;font-size:15px;line-height:1.7;margin:0 0 28px;">
+            Your account has been created successfully. We're thrilled to have you and your furry friend join the <strong>${appConfig.product.name}</strong> family — where every pet gets the royal treatment! 🌟
           </p>
-          <p style="color: ${c.textSecondary}; margin: 0; font-size: 14px; line-height: 1.6;">
-            You can now book grooming appointments, track your pet's history, and receive reminders — all in one place.
+
+          <!-- Feature cards -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:32px;">
+            <tr>
+              <td width="33%" style="padding:0 6px 0 0;vertical-align:top;">
+                <div style="background:#f4f0fb;border-radius:14px;padding:18px 14px;text-align:center;">
+                  <div style="font-size:28px;margin-bottom:8px;">📅</div>
+                  <p style="color:#1a1a2e;font-size:13px;font-weight:600;margin:0 0 4px;">Easy Booking</p>
+                  <p style="color:#888;font-size:12px;margin:0;line-height:1.5;">Book grooming in seconds</p>
+                </div>
+              </td>
+              <td width="33%" style="padding:0 3px;vertical-align:top;">
+                <div style="background:#f4f0fb;border-radius:14px;padding:18px 14px;text-align:center;">
+                  <div style="font-size:28px;margin-bottom:8px;">🐶</div>
+                  <p style="color:#1a1a2e;font-size:13px;font-weight:600;margin:0 0 4px;">Pet Profiles</p>
+                  <p style="color:#888;font-size:12px;margin:0;line-height:1.5;">Track your pet's history</p>
+                </div>
+              </td>
+              <td width="33%" style="padding:0 0 0 6px;vertical-align:top;">
+                <div style="background:#f4f0fb;border-radius:14px;padding:18px 14px;text-align:center;">
+                  <div style="font-size:28px;margin-bottom:8px;">🔔</div>
+                  <p style="color:#1a1a2e;font-size:13px;font-weight:600;margin:0 0 4px;">Reminders</p>
+                  <p style="color:#888;font-size:12px;margin:0;line-height:1.5;">Never miss an appointment</p>
+                </div>
+              </td>
+            </tr>
+          </table>
+
+          <!-- CTA Button -->
+          <div style="text-align:center;margin-bottom:8px;">
+            <a href="${bookUrl}" style="display:inline-block;background:linear-gradient(135deg,${c.primary} 0%,#7c3aed 100%);color:#ffffff;text-decoration:none;font-size:16px;font-weight:700;padding:16px 44px;border-radius:14px;letter-spacing:0.2px;">
+              Book First Appointment →
+            </a>
+          </div>
+          <p style="color:#aaa;font-size:12px;text-align:center;margin:12px 0 0;">Takes less than 2 minutes</p>
+        </td></tr>
+
+        <!-- Divider strip -->
+        <tr><td style="background:linear-gradient(135deg,${c.primary} 0%,#7c3aed 100%);height:4px;"></td></tr>
+
+        <!-- Footer -->
+        <tr><td style="background:#faf8ff;border-radius:0 0 20px 20px;padding:24px 40px;text-align:center;">
+          <p style="color:#999;font-size:12px;margin:0 0 6px;">
+            You're receiving this because you registered at <strong>${appConfig.product.name}</strong>.
           </p>
-        </div>
+          <p style="color:#bbb;font-size:11px;margin:0;">&copy; ${new Date().getFullYear()} ${appConfig.product.name}. All rights reserved.</p>
+        </td></tr>
 
-        <div style="text-align: center; margin: 28px 0;">
-          <a href="${bookUrl}"
-             style="background: ${c.primary}; color: #fff; text-decoration: none; padding: 14px 36px; border-radius: 12px; font-weight: 600; font-size: 15px; display: inline-block;">
-            Book Your First Appointment
-          </a>
-        </div>
-
-        <p style="color: ${c.textSecondary}; font-size: 12px; text-align: center; margin: 0;">
-          ${appConfig.product.name} — ${appConfig.product.tagline}
-        </p>
-      </div>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>
     `,
   });
 }
